@@ -83,13 +83,12 @@ function grad = Rsfit(V,I,z_index,type)
 
 %For Rs0 it was found that a second order polynomial provided a good fit
 %for the tested data
-if (type == "Rs0")
     n = 1;
 
     %we define a quantity called toleV which will be the permissible data
     %range allowed across V(z_index). V(z_index) is actually VoC. 
     
-    toleV = 0.01;
+    tolerance = 0.01;
     
     %find the logical that meets this criteria
     %however, this line of code is subjected to failure if the input does
@@ -97,18 +96,34 @@ if (type == "Rs0")
     %a while loop might need to be implemented
     %the while loop will need to consider the fit and ensure enough data
     %points
-    Vtol = 1;
-    Wi = 1;
+    
+    %zlogic will be the logical that contains indices which meet the critea
+    %which we are concerned with
+    zlogic = 1;
+    %define the R,P,grad and offset as follows otherwise it wont enter the loop
     R = 0;
     P = 1;
     grad = 0;
-    while (isscalar(Vtol)&& R <0.9 && P > 0.5&& grad <= 0)
-        toleV = toleV*Wi;
-        Vtol = find(V > (1-toleV)*V(z_index) & V < (1+toleV)*V(z_index));
+    offset = 0;
+    %compare if the type is correct. If type is Rs0 then we allow the z to
+    %be V which will find the Voc in the subsequent. If z = I we will be
+    %find the Isc for Rsh0
+    if   strcmp(type,'Rs0')
+        
+        z = V;
+        
+    else
+        z = I;
+        
+    end
+    
+    while (isscalar(zlogic)|| R <0.9 || P > 0.05 || grad <= 0)
+        offset = offset + tolerance;
+        zlogic = find(z > (1-offset)*z(z_index) & z < (1+offset)*z(z_index));
 
         %the data points that meet the criteria
-        Vdatapoint = V(Vtol);
-        Idatapoint = I(Vtol);
+        Vdatapoint = V(zlogic);
+        Idatapoint = I(zlogic);
 
         %polyfitting the data
         [Vpara]= polyfit(Idatapoint,Vdatapoint,n);
@@ -132,68 +147,13 @@ if (type == "Rs0")
         P = P(2,1);
 
         grad = -Vpara(1);
+ 
+        %for now this will exit the Rsh0 loop
+        if((length(zlogic)/length(V)) > 0.05)
+            break 
+        end
     end
 
-else
-    n = 1;
-    %will need to overhaul this code entirely
-    %take the Voc_index as the center and take 5% of the data and 10% of the
-    %data and compute the difference of gradient
-    
-    toleI = 0.01;
-    
-    Itol = 1;
-    %{
-    
-    while (isscalar(Itol))
-        toleV = toleV*Wi;
-        Vtol = find(V > (1-toleV)*V(z_index) & V < (1+toleV)*V(z_index));
-
-        %the data points that meet the criteria
-        Vdatapoint = V(Vtol);
-        Idatapoint = I(Vtol);
-
-        %polyfitting the data
-        [Vpara]= polyfit(Idatapoint,Vdatapoint,n);
-        %one issue is the gradient. It may be better to keep it as a line and
-        %keep n = 1.
-
-        figure;
-
-        plot(Vdatapoint,Idatapoint,'o')
-
-        hold on
-
-        plot(polyval(Vpara,Idatapoint),Idatapoint,'k-')
-
-        %i need to write code that will do a while loop on R while keeping vtol
-        %as low as possible
-
-        grad = -Vpara(1);
-    end
-    %}
-    
-    Itol = find(I > (1-toleI)*I(z_index) & I < (1+toleI)*I(z_index));
-
-    
-    Vdatapoint = V(Itol);
-    Idatapoint = I(Itol);
-
-    [Vpara]= polyfit(Idatapoint,Vdatapoint,n);
-    Vfit = @(IData) Vpara(1)*IData + Vpara(2);
-    gradinteq =@(IData) (Vpara(1));
-   
-   
-    figure;
-
-    plot(Vdatapoint,Idatapoint,'o')
-
-    hold on
-
-    plot(polyval(Vpara,Idatapoint),Idatapoint)
-    Isc_Cal = fzero(Vfit,I(z_index));
-    grad = -gradinteq(Isc_Cal);
-end
 
 
 end
