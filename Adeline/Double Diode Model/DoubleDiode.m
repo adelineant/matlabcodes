@@ -7,7 +7,7 @@ fclose(fileID);
 V = A(:,1)';
 I = -A(:,2)';
 
-Rs=30;
+Rs=20;
 k=1.38065E-23;
 T=303;
 q=1.602E-19;
@@ -57,6 +57,6 @@ for i=1:length(V)
 end
 plot (V,I2, 'r')
 hold on
-plot (V,I, 'b*')
+plot (V,I, 'b')
 
 
