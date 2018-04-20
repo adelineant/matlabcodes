@@ -25,8 +25,6 @@ T= 306.15;
 q = 1.6012E-19;
 
 [Rs0,Rsh0] = lineofbestfit(V,I);
-%Rsh0 =-(V(Isc_index+1)-V(Isc_index))/(I(Isc_index+1)-I(Isc_index));
-%Rs0 = -(V(Voc_index+1)-V(Voc_index))/(I(Voc_index+1)-I(Voc_index));
 
 Vt = k*T/q;
 Rsh=Rsh0;
