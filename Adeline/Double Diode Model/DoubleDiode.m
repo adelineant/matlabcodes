@@ -7,7 +7,7 @@ fclose(fileID);
 V = A(:,1)';
 I = -A(:,2)';
 
-Rs=3;
+Rs=30;
 k=1.38065E-23;
 T=303;
 q=1.602E-19;
@@ -48,14 +48,15 @@ Xs2 = exp(Rs*Isc/(a2*Ns*Vt2));
 K=T^(2/5)/3.77;
 Is1 = (Voc*(Isc-Im)-Vm*Isc)/(Voc*(Xm1+K*Xm2)-Vm*(Xoc1+K*Xoc2));
 Is2 = K*Is1;
-Iph = Voc*Im+Is1*(Voc*(Xm1+K*Xm2)-Vm*(Xoc1-K*Xoc2))/(Voc-Vm);
+Iph = (Voc*Im+Is1*(Voc*(Xm1+K*Xm2)-Vm*(Xoc1-K*Xoc2)))/(Voc-Vm);
 Rsh = (Vm + Im*Rs)/(Iph-Im-Is1*(Xm1-1)-Is2*(Xm2-1));
 
-I=[];
+I2=[];
 for i=1:length(V)
-    I=[I fzero(@(I)dd(I,V(i),a1, a2, Rs, Rsh, Is2, Is1, Iph, Ns, T),0)];
+    I2=[I2 fzero(@(I)dd(I,V(i),a1, a2, Rs, Rsh, Is2, Is1, Iph, Ns, T),0)];
 end
-plot (V,I, 'r')
+plot (V,I2, 'r')
 hold on
+plot (V,I, 'b*')
 
 
