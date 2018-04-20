@@ -1,46 +1,70 @@
 clear all; close all; clc
+
+%Reading the data file and generating I and V vector
 fileID = fopen('H4-1-1FTO-1C-F-1PH-1X.txt','r');
 A = [fscanf(fileID,'%f',[2 Inf])]';
 fclose(fileID);
-V = A(:,1);
-I = -A(:,2);
+V = A(:,1)';
+I = -A(:,2)';
 
+%Centre point of data to be fitted around point closest to Isc
 Isc_index = find(abs(V)==min(abs(V-0)));
 a = Isc_index;
 
+%Using a for loop for different ranges of data. Point closest to Isc is the centrepoint and
+%the range is the no of points left and right to be included in the
+%fitting.
 Rsho2 = [];
-for range = [30 40 50 55]; %CAN CHANGE THIS ACCORDING TO DATA USED
-    x=V(a);%Centre point of data to be fitted
-    y=I(a);%centre point of data to be fitted
-    for i=1:range
-        x = [x V(a-i)];
-        y = [y I(a-i)];
-    end
-    x=fliplr(x);
-    y=fliplr(y);
-    for i=1:range
-        x= [x V(a+i)];
-        y = [y I(a+i)];
-    end
+Isc2 = [];
+range1 = [30 40 50 55 60 65 70]; %Range of data to be fitted
+for range = range1; 
+    
+    % Extracting the data to be fitted
+        x=V(a); %x = V
+        y=I(a); %y = I
+        %Extracting data left of centre point
+        for i=1:range
+            x = [x V(a-i)];
+            y = [y I(a-i)];
+        end
+            % As data to the left of Isc is added to the end of the vector (i.e
+            % the right), need to flip to corret this
+            x=fliplr(x); 
+            y=fliplr(y);
+        % Extracting the data right of centre point
+        for i=1:range
+            x= [x V(a+i)];
+            y = [y I(a+i)];
+        end
 
-    %Fitting polynomial
-    n=1; %initialising
+    %Fitting polynomial to x  & y (or V & I) using inbuilt matlab function
+    %polyfit(x, y, n) where x is indep variable, y is dependent variable
+    %and n is the nth degree polynomial to be used. A while loop is used to
+    %determine the n value which meets the error tolerance using least
+    %squares error.
+    n=1; %initialising. n is the nth degree polynomial
     error = 100; %initialising
     while (error>0.1) % can change tolerance
         p=polyfit(x,y,n);
-        y2=polyval(p,x);
-        error = sum((y2-y).^2);
+        y2=polyval(p,x); % y2 returns the polyfit values for x
+        error = sum((y2-y).^2); % using least squares error 
         n=n+1;
     end
 
-    %Extract Isc & Rsho
+    %Extract Isc & Rsho. Isc is when x=0 (or V=0). polyder evaluates the
+    %derivate of a function given its coefficients p. 
     Isc = polyval(p,0);
-    q=polyder(p);
-    Rsho=-1/polyval(q,0);
-    Rsho2 = [Rsho Rsho2];
+    q=polyder(p); %coefficients of derivative function
+    Rsho=-1/polyval(q,0); %evaluating derivative at Isc
+
+    % Rsho array for different ranges
+    Rsho2 = [Rsho2 Rsho];
+    Isc2 = [Isc2 Isc];
 end
-Rsho2
-meanRsh = mean(Rsho2)
-plot (x,y, 'r*');
-hold on
-plot (x,y2, 'b');
+%Tabulating range, Rsho, Isc
+Rsho = Rsho2';
+range = range1';
+Isc = Isc2';
+table (range, Rsho, Isc)
+mean = mean(Rsho);
+fprintf('The average Rsho2 value is %.2f',mean)
