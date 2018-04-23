@@ -67,7 +67,7 @@ range = range1';
 Voc = Voc2';
 table (range, Rso, Voc)
 mean = mean(Rso);
-fprintf('The average Rsho value is %.2f',mean)
+fprintf('The average Rso value is %.2f',mean)
 
 
 

@@ -16,7 +16,7 @@ a = Isc_index;
 %fitting.
 Rsho2 = [];
 Isc2 = [];
-range1 = [30 40 50 55 60 65 70]; %Range of data to be fitted
+range1 = [30 40 50 55 60]; %Range of data to be fitted
 for range = range1; 
     
     % Extracting the data to be fitted
