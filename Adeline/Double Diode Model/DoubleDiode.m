@@ -1,23 +1,23 @@
 clear all; close all; clc
 
 %Reading the data file and generating I and V vector
-fileID = fopen('H4-1-1FTO-1C-F-1PH-1X.txt','r');
+fileID = fopen('sim2d.txt','r');
 A = [fscanf(fileID,'%f',[2 Inf])]';
 fclose(fileID);
 V = A(:,1)';
-I = -A(:,2)';
+I = A(:,2)';
 
 %Known parameters
-Rs=36;
+Rs=0.36;
 k=1.38065E-23;
 T=298;
 q=1.602E-19;
 Vt1=k*T/q;
 Vt2=k*T/q;
 a1=1;
-a2=2
-for Rs = 1:36
-    Ns=1; %Is this one for only one solar cell?
+a2=2;
+for Rs = 30
+    Ns=1;
 
     %Use point closest to Voc as Voc (Need to improve)
     Voc_index = find(abs(I)==min(abs(I-0)));
@@ -34,13 +34,13 @@ for Rs = 1:36
     Vm = V(max_index);
 
     %Plotting experimental data
-    % plot (V,I)
-    % hold on
-    % plot (Voc, I(Voc_index), 'r*')
-    % plot (V(Isc_index), Isc, 'r*')
-    % plot (Vm, Im, 'b*')
+    plot (V,I)
+    hold on
+    plot (Voc, I(Voc_index), 'r*')
+    plot (V(Isc_index), Isc, 'r*')
+    plot (Vm, Im, 'b*')
 
-    %Assumptions
+   % Assumptions
     Xoc1 = exp(Voc/(a1*Ns*Vt1));
     Xoc2 = exp(Voc/(a2*Ns*Vt2));
     Xm1 = exp((Vm+Rs*Im)/(a1*Ns*Vt1));
@@ -53,6 +53,8 @@ for Rs = 1:36
     Is2 = K*Is1;
     Iph = (Voc*Im+Is1*(Voc*(Xm1+K*Xm2)-Vm*(Xoc1-K*Xoc2)))/(Voc-Vm);
     Rsh = (Vm + Im*Rs)/(Iph-Im-Is1*(Xm1-1)-Is2*(Xm2-1));
+    
+    Rscal = Vm/Im-1/(Is1/(a1*Ns*Vt1)*Xm1+Is2/(a2*Ns*Vt1)*Xm2+1/Rsh)
 
     I2=[];
     for i=1:length(V)

@@ -26,25 +26,15 @@ n1=1.26;
 n2=2.84;
 Rs=0.36;
 Rsh=233.46
-I01=2.75E-8
-I02=7.11E-8
-Iph = 3.45
-Ns=36;
-T=298;
+I02=3.3E-19;
+I01=1.3E-19;
+Iph = 0.0024;
+Ns=1;
+T=303;
 I=[];
 for i=1:length(V)
     I=[I fzero(@(I)dd(I,V(i),n1, n2, Rs, Rsh, I02, I01, Iph, Ns, T),0)];
 end
-
-            format = sprintf("sim2d.txt");
-            A = [V;I];
-            
-
-            fileID = fopen(format,'w');
-            fprintf(fileID,'%6s %12s\r\n','V','Ical');
-            fprintf(fileID,'%6.2f %12.8f\r\n',A);
-            fclose(fileID);
-
 plot (V,I, 'b')
 hold on
 
