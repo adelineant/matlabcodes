@@ -1,44 +1,43 @@
 clear all; close all; clc
 
 %Reading the data file and generating I and V vector
-fileID = fopen('sim2d.txt','r');
+fileID = fopen('H4-1-1FTO-1C-F-1PH-1X.txt','r');
 A = [fscanf(fileID,'%f',[2 Inf])]';
 fclose(fileID);
 V = A(:,1)';
-I = A(:,2)';
+I = -A(:,2)';
 
-%Constant parameters
+%Finding Voc (Need to include polynomial)
+Voc_index = find(abs(I)==min(abs(I-0)));
+Voc = V(Voc_index);
+
+%Finding Isc (Need to include polynomial)
+Isc_index = find(abs(V)==min(abs(V-0)));
+Isc = I(Isc_index);
+
+%Finding Im and Vm
+mpp = abs(I([Isc_index:Voc_index]).*V([Isc_index:Voc_index]));
+max_index = find(mpp==max(mpp));
+Im = I(max_index);
+Vm = V(max_index);
+
+%Known parameters
 k=1.38065E-23;
-T=298;
+T=306.15;
 q=1.602E-19;
 Vt1=k*T/q;
 Vt2=k*T/q;
 
 %Input parameters
-a1=1.26;
-a2=2.84;
-Ns=36;
+a1=1;
+a2=2;
+Ns=1;
 
 %Initialising
 Rs=0;
 e=100;
 
-while e>0.0001
-   
-    %Finding Voc (Need to include polynomial)
-    Voc_index = find(abs(I)==min(abs(I-0)));
-    Voc = V(Voc_index);
-
-    %Finding Isc (Need to include polynomial)
-    Isc_index = find(abs(V)==min(abs(V-0)));
-    Isc = I(Isc_index);
-
-    %Finding Im and Vm
-    mpp = abs(I([Isc_index:Voc_index]).*V([Isc_index:Voc_index]));
-    max_index = find(mpp==max(mpp));
-    Im = I(max_index);
-    Vm = V(max_index);
-
+while e>0.00001
    % Assumptions
     Xoc1 = exp(Voc/(a1*Ns*Vt1));
     Xoc2 = exp(Voc/(a2*Ns*Vt2));
@@ -57,22 +56,22 @@ while e>0.0001
     %Determining when to stop loop
     Rscal = Vm/Im-1/(Is1/(a1*Ns*Vt1)*Xm1+Is2/(a2*Ns*Vt1)*Xm2+1/Rsh);
     e = Rs- Rscal;
-    Rs = Rs+0.001;
+    Rs = Rs+0.0001;
 
 end
 
 % Plotting extracted parameters
     Ical=[];
-    for i=1:length(V)
+    for i=1:length(V(1:1:Voc_index))
         Ical=[Ical fzero(@(I)dd(I,V(i),a1, a2, Rs, Rsh, Is2, Is1, Iph, Ns, T),0)];
     end
-    plot (V(1:1:Voc_index),Ical(1:1:Voc_index), 'r')
+    plot (V(1:i),Ical(1:i), 'r')
     hold on
-    plot (V(1:1:Voc_index),I(1:1:Voc_index), 'b')
+    plot (V(1:i),I(1:i), 'b')
     legend ('fitted', 'experimental')
 
 %Calculating least squares mean error
-error = mean((I-Ical).^2);  
+error = mean((I(1:i)-Ical).^2);  
 
 %Printing parameters
 fprintf('DOUBLE DIODE PARAMETERS\n')

@@ -1,13 +1,13 @@
 clear all; close all; clc
 
 %Reading the data file and generating I and V vector
-fileID = fopen('H4-1-1FTO-1C-F-1PH-1X.txt','r');
+fileID = fopen('sim2d.txt','r');
 A = [fscanf(fileID,'%f',[2 Inf])]';
 fclose(fileID);
 V = A(:,1)';
-I = -A(:,2)';
+I = A(:,2)';
 
-%Constant parameters
+%Known parameters
 k=1.38065E-23;
 T=298;
 q=1.602E-19;
@@ -15,9 +15,10 @@ Vt1=k*T/q;
 Vt2=k*T/q;
 
 %Input parameters
-a1=1;
-a2=2;
-Ns=1;
+%how did she calculate these values??
+a1=1.00;
+a2=2.0;
+Ns=36;
 
 %Initialising
 Rs=0;
@@ -63,16 +64,16 @@ end
 
 % Plotting extracted parameters
     Ical=[];
-    for i=1:length(V)
+    for i=1:length(V(1:1:Voc_index))
         Ical=[Ical fzero(@(I)dd(I,V(i),a1, a2, Rs, Rsh, Is2, Is1, Iph, Ns, T),0)];
     end
-    plot (V(1:1:Voc_index),Ical(1:1:Voc_index), 'r')
+    plot (V(1:i),Ical(1:i), 'r')
     hold on
-    plot (V(1:1:Voc_index),I(1:1:Voc_index), 'b')
+    plot (V(1:i),I(1:i), 'b')
     legend ('fitted', 'experimental')
 
 %Calculating least squares mean error
-error = mean((I-Ical).^2);  
+error = mean((I(1:i)-Ical).^2);  
 
 %Printing parameters
 fprintf('DOUBLE DIODE PARAMETERS\n')
