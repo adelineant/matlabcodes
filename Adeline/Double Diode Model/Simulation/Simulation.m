@@ -21,7 +21,7 @@ clear all; close all; clc
 % fclose(fileID);
 % V = A(:,1)';
 % I2 = -A(:,2)';
-V= 0:0.01:20;
+V= 0:0.01:21.7;
 n1=1.26;
 n2=2.84;
 Rs=0.36;
@@ -36,15 +36,13 @@ for i=1:length(V)
     I=[I fzero(@(I)dd(I,V(i),n1, n2, Rs, Rsh, I02, I01, Iph, Ns, T),0)];
 end
 
-            format = sprintf("sim2d.txt");
             A = [V;I];
-            
 
-            fileID = fopen(format,'w');
-            fprintf(fileID,'%6s %12s\r\n','V','Ical');
-            fprintf(fileID,'%6.2f %12.8f\r\n',A);
-            fclose(fileID);
-
+       
+    fid=fopen('sim2d.txt','w');
+    fprintf(fid, '%f %f \n', A);
+    fclose(fid);
+    
 plot (V,I, 'b')
 hold on
 
