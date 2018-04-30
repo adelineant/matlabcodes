@@ -1,4 +1,4 @@
-function [Rs0,Rsh0] = lineofbestfit(V,I)
+function [Rs0,Rsh0,Voc,Isc,Im,Vm] = lineofbestfit(V,I)
 
 %test if the user has inputted the is correct
 %check if the inputs are all real and contains no imaginary values
@@ -15,7 +15,15 @@ end
     Isc= I(Isc_index);
     Voc_index = find(abs(I)==min(abs(I-0)));
     Voc= V(Voc_index);
-    
+    Ismooth = smoothdata(I,'sgolay');
+
+    %Find Im and Vm from MPP tracking
+    mpp = abs(I([1:1:Voc_index]).*V([1:1:Voc_index]));
+    max_index = find(mpp==max(mpp));
+    Im = I(max_index);
+    Vm = V(max_index);
+   % plot(V,Ismooth,'b.',V,I,'r-')
+
 % this block of code will check if there is any negative voltages
 % this is common in experimental data but not so in the simulated data
 % this code cause problems if we dont take notice of it
@@ -62,20 +70,20 @@ end
 if (Isc < 0)
 
     disp('The current values supplied have been multiplied by -1');
-    I = -I;
+    Ismooth = -Ismooth;
 end
 
 
 %Here we call the the local function Rsfit that is a local function in the
 %bestfit model
-Rs0 = Rsfit(V,I,Voc_index,"Rs0");
-Rsh0 = Rsfit(V,I,Isc_index,"Rsh0");
+Rs0 = Rsfit(V,Ismooth,Voc_index,"Rs0",Vm,Im,Isc,Voc);
+Rsh0 = Rsfit(V,Ismooth,Isc_index,"Rsh0",Vm,Im,Isc,Voc);
 
 
 end
 
 
-function grad = Rsfit(V,I,z_index,type)
+function grad = Rsfit(V,I,z_index,type,Vm,Im,Isc,Voc)
 
 %The if loop will determine which code to run.
 %There may be some merit running it in a seperate code entierly
@@ -108,16 +116,48 @@ function grad = Rsfit(V,I,z_index,type)
     %compare if the type is correct. If type is Rs0 then we allow the z to
     %be V which will find the Voc in the subsequent. If z = I we will be
     %find the Isc for Rsh0
-    if   strcmp(type,'Rs0')
+    if   strcmp(type,'Rsh0')
         
-        z = V;
+        z = V(V < Vm/2);
+        mgrad = (Im - Isc)/(Vm - 0);
+       % plot(z,I(V < Vm/2));
+        n = 1;
+        %polyfitting the data
+        Vdatapoint = z;
+        Idatapoint = I(V < Vm/2);
+        [Vpara]= polyfit(Idatapoint,Vdatapoint,n);
+        %one issue is the gradient. It may be better to keep it as a line and
+        %keep n = 2.
+      % hold on
+        %plot(polyval(Vpara,Idatapoint),Idatapoint,'k-')
+        grad = -Vpara(1);
         
     else
-        z = I;
+        z = I(I < Im/2);
+        mgrad = (0 - Im)/(Voc - Vm);
+      %  figure;
+       % plot(V(I < Im/2),z);
+        Vdatapoint = V(I < Im/2);
+        Idatapoint = z;
+        n =2;
+        %polyfitting the data
+        [Vpara]= polyfit(Idatapoint,Vdatapoint,n);
+     
+        %one issue is the gradient. It may be better to keep it as a line and
+        %keep n = 2.
+       % hold on
+       % plot(polyval(Vpara,Idatapoint),Idatapoint,'k-')
         
+        grad = -(2*Vpara(1)*0 + Vpara(2));
+
     end
     
-    while (isscalar(zlogic)|| R <0.9 || P > 0.05 || grad <= 0)
+    %take the data points to 1/2 of the data at Vm
+    
+    
+    
+    %{
+    while (isscalar(zlogic)|| R <0.99 || P > 0.05 || grad <= 0)
         offset = offset + tolerance;
         zlogic = find(z > (1-offset)*z(z_index) & z < (1+offset)*z(z_index));
 
@@ -132,11 +172,11 @@ function grad = Rsfit(V,I,z_index,type)
 
         figure;
 
-        plot(Vdatapoint,Idatapoint,'o')
+       % plot(Vdatapoint,Idatapoint,'o')
 
-        hold on
+       % hold on
 
-        plot(polyval(Vpara,Idatapoint),Idatapoint,'k-')
+       % plot(polyval(Vpara,Idatapoint),Idatapoint,'k-')
 
         %i need to write code that will do a while loop on R while keeping vtol
         %as low as possible
@@ -154,7 +194,7 @@ function grad = Rsfit(V,I,z_index,type)
         end
     end
 
-
+    %}
 
 end
 
