@@ -9,15 +9,14 @@ I = A(:,2)';
 
 %Known parameters
 k=1.38065E-23;
-T=298;
+T=298.15;
 q=1.602E-19;
 Vt1=k*T/q;
 Vt2=k*T/q;
 
 %Input parameters
-%how did she calculate these values??
-a1=1.00;
-a2=2.0;
+a1=1;
+a2=2;
 Ns=36;
 
 %Initialising
@@ -70,7 +69,7 @@ end
     plot (V(1:i),Ical(1:i), 'r')
     hold on
     plot (V(1:i),I(1:i), 'b')
-    legend ('fitted', 'experimental')
+    legend ('fitted', 'simulated')
 
 %Calculating least squares mean error
 error = mean((I(1:i)-Ical).^2);  
