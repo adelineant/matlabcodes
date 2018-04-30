@@ -1,18 +1,18 @@
  clear all; close all; clc
 
 
-%open the files in the datareader. ma
+%open the files in the datareader.ma which returns a structure
 [struArray,top] = datagrab();
 
-%Opening data file
-%fileID = fopen('H9-4-1FTO-1C-R-1PH-1X.txt','r');
-%A = [fscanf(fileID,'%f',[2 Inf])]';
 
 for fileiter = [1:1:length(struArray)]
-    
+    %Acess the structure and then store the data in A
+    %save the column in I and V respectively
     A = struArray{fileiter}.data;
     V = A(:,1);
+    %YOU NEED TO FIND A WAY A WAY TO MAKE THE PROGRAM KNOW WHAT SIGN
     I = -A(:,2);
+    
 
 
 
@@ -54,6 +54,8 @@ for fileiter = [1:1:length(struArray)]
     legend ('experimental', 'fitted')
     xlabel ('V')
     ylabel ('I')
+    hold on
+    plot(Vm,Im,'go');
     
 end
 cd(top);
