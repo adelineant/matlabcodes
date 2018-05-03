@@ -47,6 +47,7 @@ for fileiter = [1:1:length(struArray)]
             end
     end
     figure;
+    
     plot (V,I, 'r');
     hold on
     plot (V(1:i),I2(1:i), 'b');
@@ -56,7 +57,8 @@ for fileiter = [1:1:length(struArray)]
     ylabel ('I')
     hold on
     plot(Vm,Im,'go');
-    
+    ylim([0 Inf])
+    %grad = (Vm*Im - )/()
 end
 cd(top);
 

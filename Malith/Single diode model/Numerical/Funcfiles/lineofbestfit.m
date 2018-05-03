@@ -1,4 +1,4 @@
-function [Rs0,Rsh0,Voc,Isc,Im,Vm] = lineofbestfit(V,I)
+function [Rs0,Rsh0,Voc,Isc,Im,Vm,Voc_index,Isc_index] = lineofbestfit(V,I)
 
 %test if the user has inputted the is correct
 %check if the inputs are all real and contains no imaginary values
@@ -19,36 +19,14 @@ end
         
         
     end
-    hold on
-    plot(0,Isc,'*');
+
     Voc_index = find(abs(I)==min(abs(I-0)));
     
     Voc= V(Voc_index);
     %smooth the data
     Ismooth = smoothdata(I,'sgolay');
-    
-
-
-    %Find Im and Vm from MPP tracking
-    %Calculating power for the reverse bias and forward bias measurements
-    %may become an issue because indexes are swapped. e.g in forward I(1)
-    %will contain values near Isc. But in reverse bias I(1) will be
-    %negative or closer to zero
-    %First if statement is for forward bias and the else is for negative
-    if (Voc_index > Isc_index )
-        mapvect = Isc_index:1:Voc_index;
-        mpp = abs(Ismooth(mapvect).*V(mapvect));
-        max_index = find(mpp==max(mpp));
-        Im = Ismooth(max_index + Isc_index);
-        Vm = V(max_index + Isc_index);
-    
-    else 
-        mapvect = Voc_index:1:Isc_index;
-        mpp = abs(Ismooth(mapvect).*V(mapvect));
-        max_index = find(mpp==max(mpp));
-        Im = Ismooth(max_index + Voc_index);
-        Vm = V(max_index +Voc_index);
-    end
+        
+   [Vm,Im,Voc_index,Isc_index] =  mxpower(Voc_index,Isc_index,Ismooth,V);
 
 
 %Here we call the the local function Rsfit that is a local function in the
