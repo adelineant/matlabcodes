@@ -1,21 +1,23 @@
 clc,clear all, close all
-
-for Rs = [65];
-    for Rsh = 100000%linspace(10000,20000,5)
-        for N = [300]
+format long
+for Rs = [30];
+    for Rsh = [300]
+        for N = [300]%linspace(100,10000,10)
             
             Voc = 0.9694;
             Isc = 0.0037;
-            V = linspace(0,Voc*2.0,10000);
-            figure ;
+            V = linspace(0,Voc*2.0,1000);
+            %figure ;
         
             %T = 306.15;
 
             %y=SD_equation(V,I,Rs,Rsh,n)
-           [Ireg,Vm,Im,dvdI,dvdI2] = SD_equation(V,Voc,Isc,Rs,Rsh,N);
+           [Ireg,Vm,Im,dvdI,dvdI2,dvdI3] = SD_equation(V,Voc,Isc,Rs,Rsh,N);
             
             %plot (V,-Ical)
            % hold on
+           
+           
    
             
             
@@ -27,34 +29,43 @@ for Rs = [65];
            %rad =  ((1 + dvdI.^2).^(3/2))./(abs(dvdI2));
            %not abs here. just to test the equation
            rad = ((((dvdI2))./((1 + dvdI.^2).^(3/2))));
-           plot(V,rad);
-           
-            figure;
+           %plot(Ireg,rad);
+           hold on
+            %figure;
             plot(V,Ireg);
             hold on
             plot(Vm,Im,'o');
            
             xlabel('V');
+            
             ylabel('I');
-            format = sprintf("Rs=%d Rsh=%d N=%d",Rs,Rsh,N);
-            legend(format,'powerpoint')
-            ylim([0 Inf])
+            
+            fmt = sprintf("Rs=%d Rsh=%d N=%d",Rs,Rsh,N);
+            
+            legend(fmt,'powerpoint')
+            
+            %ylim([0 Inf])
           
-            bb = (find(min(rad) == rad));
-           plot(V(bb),Ireg(bb),'*')
-           
-            Vm = V(bb);
-            Ireg = -Ireg(bb);
-            q = 1.6012*10^(-19);
-
-            kb = 1.38*10^(-23);
-
-
-
-first = 2*((Isc + Ireg - Vm/Rsh + N*kb/(q*Rsh) + ((Ireg + Isc)*Rs)/Rsh))/...
-    (N*kb/q)+ 1/(Rsh +(Rs +Vm/Im)) 
-
-second = 3*(((1 + (-Vm/Ireg)^2))^0.5)*(-Vm/Ireg)/((1-(Vm/Ireg))^1.5)
+            bb = (min(rad) == rad);
+            
+            plot(V(bb),Ireg(bb),'*')
+                            
+            
+            Isc_index = find(abs(V)==min(abs(V-0)));
+            
+            %fileID = fopen("lowshunt.txt",'w');
+           %fprintf(fileID,'%6s %12s\r\n','V','Ical');
+            
+            A = [V;Ireg];
+            figure
+            plot(A(1,:),A(2,:))
+            fileID = fopen("lowshunt.txt",'w');
+            fprintf(fileID,'%12f %12f\r\n',A);
+            fclose(fileID);
+            
+           % fun = @(x) (1 + 1/(Ireg(bb)^2) + 2/(-Ireg(bb)^3))/(x^2*((1+1/(Ireg(bb)^2))^2))  -  3*((1+(x/Ireg(bb))^2)^(-0.5))
+            
+           %fzero(fun,0.6)
        
            
             %format = sprintf("Rs=%e_Rsh=%e_n=%f.txt",Rs,Rsh,N);
@@ -64,12 +75,13 @@ second = 3*(((1 + (-Vm/Ireg)^2))^0.5)*(-Vm/Ireg)/((1-(Vm/Ireg))^1.5)
             %fprintf(fileID,'%6s %12s\r\n','V','Ical');
             %fprintf(fileID,'%6.2f %12.8f\r\n',A);
             %fclose(fileID);
+            Ireg(bb);
         end
     end
 end
 
 
-function [Ireg,Vm,Im,dvdI,dvdI2] = SD_equation(V,Voc,Isc,Rs,Rsh,N)
+function [Ireg,Vm,Im,dvdI,dvdI2,dvdI3] = SD_equation(V,Voc,Isc,Rs,Rsh,N)
 
 %I broke the terms in the long lambert equation to make it easy to read and
 %follow
@@ -96,9 +108,14 @@ a = (N*kb/q);
 b = (Isc + Ireg - V/Rsh + N*kb/(q*Rsh) + ((Ireg + Isc)*Rs)/Rsh);
 dvdI = (a./b) +Rs;
 dvdI2 = -(a*(1+((Rs-dvdI)/Rsh))./b.^2);
-%dvdI2 = -(N*kb*(Rs/Rsh - dvdI/Rsh + 1))./(q*(Ireg + Isc - V/Rsh + (Rs*(Ireg + Isc))/Rsh + (N*kb)/(Rsh*q)).^2);
+%dvdI2_comp = -(N*kb*(Rs/Rsh - dvdI/Rsh + 1))./(q*(Ireg + Isc - V/Rsh + (Rs*(Ireg + Isc))/Rsh + (N*kb)/(Rsh*q)).^2);
+dvdI3 =  (2*N*kb*(Rs/Rsh - dvdI/Rsh + 1).^2)./(q*(Ireg + Isc - V/Rsh + (Rs*(Ireg + Isc))/Rsh + (N*kb)/(Rsh*q)).^3) + (N*kb*dvdI2)./(Rsh*q*(Ireg + Isc - V/Rsh + (Rs*(Ireg + Isc))/Rsh + (N*kb)/(Rsh*q)).^2);
 
-    Isc_index = find(abs(V)==min(abs(V-0)));
+%drad = dvdI3./(dvdI.^2 + 1).^(3/2) - (3*dvdI.*dvdI2.^2)./(dvdI.^2 + 1).^(5/2);
+%plot(V,drad)
+
+
+Isc_index = find(abs(V)==min(abs(V-0)));
     
     Isc= Ireg(Isc_index);
     

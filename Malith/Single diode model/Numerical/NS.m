@@ -5,7 +5,7 @@ clc,clear all,close all
 [struArray,top] = datagrab();
 
 
-for fileiter = [1:1:length(struArray)]
+for fileiter = [1:1:3 ]%length(struArray)]
     %Acess the structure and then store the data in A
     %save the column in I and V respectively
     A = struArray{fileiter}.data;
@@ -15,13 +15,17 @@ for fileiter = [1:1:length(struArray)]
     %phyical quantities
     q = 1.6012*10^(-19); 
     kb = 1.38*10^(-23);
-    T = 306.15;
+    
+    
+
     
     [Rs0,Rsh0,Voc,Isc,Im,Vm,Voc_index,Isc_index] = lineofbestfit(V,-I);
 
-    %beta 
+Rs0 = Voc/Isc *0.90;
+     beta0=[Rs0,Rsh0,500];
+     
 
-     beta0=[600];
+     
      b=lsqnonlin(@thisisfun,beta0,[],[],[],V(),I(),Voc,Isc,Vm,Im,kb,q,Rs0,Rsh0,Voc_index,Isc_index);
      [min,Ical] = thisisfun(b,V(),I(),Voc,Isc,Vm,Im,kb,q,Rs0,Rsh0,Voc_index,Isc_index);
      
@@ -32,22 +36,31 @@ for fileiter = [1:1:length(struArray)]
 %b = fzero(@thisisfun,1000000,[],V(),I(),Voc,Isc,Vm,Im,kb,q,Rs0,Rsh0,Voc_index,Isc_index)
  %[min,Ical] = thisisfun(b,V(),I(),Voc,Isc,Vm,Im,kb,q,Rs0,Rsh0,Voc_index,Isc_index);
 
-
+[Vm_cal,Im_cal] = mxpower(Voc_index,Isc_index,-Ical,V);
 %plot both
+figure;
+plot(V,-Ical);
+hold on
+plot(V,-I);
+hold on
+%plot(Vm_cal,-Im_cal,'b*');
+plot(Vm,Im,'r*');
+hold on
+plot(Vm_cal,Im_cal,'o');
 
 
 
 
 %legend('Fitted IV curve','Actual IV data')
 ylim([0 Inf])
-figure
 end
 cd(top);
 
 function [min,Ireg] = thisisfun(beta0,V,I,Voc,Isc,Vm,Im,kb,q,Rs,Rsh,Voc_index,Isc_index)
 
-N = beta0(1);
-
+N = beta0(3);
+Rs = beta0(1);
+Rsh = beta0(2);
 
 
 %I broke the terms in the long lambert equation to make it easy to read and
@@ -69,16 +82,7 @@ t5 = ((q*Rs)/(kb*N)) *...
 
 Ireg = t1 - Rsh*((t2 + t3)/(Rs*(Rs+Rsh))) + t4*lambertw(t5 * exp((Rsh*q*(t2+t3))/(N*kb*(Rs+Rsh))));
 
-
-[Vm_cal,Im_cal] = mxpower(Voc_index,Isc_index,Ireg,V);
-plot(V,-Ireg);
-hold on
-plot(V,-I);
-hold on
-plot(Vm_cal,-Im_cal,'b*');
-plot(Vm,Im,'r*');
-
-min=(Im_cal +Im)*10^3;
+min = Ireg - I;
 end 
 
 function [struArray,top] = datagrab()

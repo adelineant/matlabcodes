@@ -26,7 +26,7 @@ end
     %smooth the data
     Ismooth = smoothdata(I,'sgolay');
         
-   [Vm,Im,Voc_index,Isc_index] =  mxpower(Voc_index,Isc_index,Ismooth,V);
+   [Vm,Im] =  mxpower(Voc_index,Isc_index,Ismooth,V);
 
 
 %Here we call the the local function Rsfit that is a local function in the

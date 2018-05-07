@@ -7,16 +7,21 @@ syms f(x)
 %lambertw(0, 2)/(x*(lambertw(0, 2) + 1))
 %double(subs(f,2))
 
-syms y(I) dy(I) dy2(I);
+syms y(I) dvdI(I) dvI2(I);
 
-dy2(I) = (gradient(dy,I))/((1 + y(I)^2)^(3/2));
-marad = gradient(dy2,I)
+dvdI(I) = gradient(y,I)
+dvdI2(I) = gradient(dvdI,I);
+
+rad = ((((dvdI2))./((1 + dvdI.^2).^(3/2))));
+
+grrad = gradient(rad,I)
+
 
 syms dy(z) y(z) 
 
 y(z) = z^2;
 dy(z) = diff(y(z),z);
- gradient(dy(z),z);
+ gradient(dy(z),z)
  
  syms z(x) 
  z(x) = x^2;
@@ -34,3 +39,9 @@ dy(z) = diff(y(z),z);
  gradient(dvdI,Ireg)
  
  %-(N*kb*(Rs/Rsh - dVdi/Rsh + 1))/(q*(Ireg + Isc - V(Ireg)/Rsh + (Rs*(Ireg + Isc))/Rsh + (N*kb)/(Rsh*q))^2)
+ 
+ %third der
+ syms V(Ireg) Ireg kb q Isc Rsh Rs N
+ dvdi2 = -(N*kb*(Rs/Rsh - gradient(V,Ireg)/Rsh + 1))/(q*(Ireg + Isc - V(Ireg)/Rsh + (Rs*(Ireg + Isc))/Rsh + (N*kb)/(Rsh*q))^2)
+ dvdi3 = gradient(dvdi2,Ireg)
+ 

@@ -31,6 +31,11 @@ for fileiter = [1:1:length(struArray)]
     n=(Vm+Im.*Rs0-Voc)./(Vt.*(log(Isc-Vm./Rsh-Im)-log(Isc-Voc./Rsh)+Im./(Isc-Voc./Rsh)));
     Is = (Isc-Voc/Rsh)*exp(-Voc/(n*Vt));
     Rs = Rs0-n*Vt/Is*exp(-Voc/(n*Vt));
+    if Rs < 0
+        
+        Rs = 0;
+        
+    end
     Iph = Isc*(1+Rs/Rsh)+Is*(exp(Isc*Rs/(n*Vt))-1);
 
     %Plotting using the extracted parameters

@@ -18,15 +18,11 @@
         max_index = find(mpp==max(mpp));
         Im = I(max_index + Voc_index);
         Vm = V(max_index +Voc_index);
-        Imf = I(max_index + Voc_index + 1);
-        Vmf = V(max_index +Voc_index + 1);
-        Imr = I(max_index + Voc_index + 1);
-        Vmr = V(max_index +Voc_index + 1);
+
     end
     
     %find gradient at MPP; should be close to zero
         
-        mpgradf = (Im*Vm)-(Imf*Vmf)/(Vm - Vmf)
 
 
 end 
