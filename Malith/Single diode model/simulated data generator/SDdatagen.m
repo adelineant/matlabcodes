@@ -1,8 +1,10 @@
-clc,clear all, close all
+%clc,clear all, close all
 format long
-for Rs = [30];
-    for Rsh = [300]
-        for N = [300]%linspace(100,10000,10)
+for Rs = [245.982886107869];
+    for Rsh = [2850.24830959519]
+        for N = [60.6034974503790]%linspace(100,10000,10)
+            
+            
             
             Voc = 0.9694;
             Isc = 0.0037;
@@ -44,7 +46,7 @@ for Rs = [30];
             
             legend(fmt,'powerpoint')
             
-            %ylim([0 Inf])
+            ylim([0 Inf])
           
             bb = (min(rad) == rad);
             

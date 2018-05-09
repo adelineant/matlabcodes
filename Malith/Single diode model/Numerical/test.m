@@ -10,9 +10,11 @@ for fileiter = [6:1:28]%length(struArray)]
     A = struArray{fileiter}.data;
     V = A(:,1);
     I = A(:,2);
-    I = smooth(V,I,0.05,'rloess');
+  %  I = smooth(V,I,0.05,'rloess');
     
    [Rs0,Rsh0,Voc,Isc,Im,Vm,Voc_index,Isc_index] = lineofbestfit(V,-I);
+   
+  plot(V,-I)
    
    Vcal = (-I - Isc - (Isc/Voc).*V)./((-2/Voc)*(Isc/Voc));
    
@@ -29,12 +31,15 @@ for fileiter = [6:1:28]%length(struArray)]
   %Ical = (Isc/Voc).*V + Isc*(1-((2/Voc).*V));
   
   %limit V and I to get the solution you want
+    q = 1.6012*10^(-19); 
+    kb = 1.38*10^(-23);
   
   maxpoint = find (d == max(d((Vcal > 0 & Vcal < Voc))));
-  
+  minRsh = -Vm/(Im - Isc);
+  %N = (q/(kb))*((-Vm/Im) - (-Im/(Voc - Vm))^-1)/(1/(Isc + Im - Vm/minRsh) - 1/(Isc - Voc/minRsh))
  
- 
-  
+ N = (q/kb)*((2*Vm - Voc)/-Im)/(1/(Isc - Voc/minRsh) - 1/(Isc - Vm/minRsh - Im))
+  %Im = -Im;
    plot(V,-I)
    hold on
   %plot(Vcal,Ical,'*')
@@ -53,6 +58,7 @@ for fileiter = [6:1:28]%length(struArray)]
    %plot(fzero(f,Voc),Im,'*')
    
    ylim([0 Inf])
+   figure
     
 end
 cd(top);

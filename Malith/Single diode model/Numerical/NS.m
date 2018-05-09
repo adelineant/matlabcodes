@@ -5,7 +5,7 @@ clc,clear all,close all
 [struArray,top] = datagrab();
 
 
-for fileiter = [1:1:3 ]%length(struArray)]
+for fileiter = [1:1:length(struArray) ]%length(struArray)]
     %Acess the structure and then store the data in A
     %save the column in I and V respectively
     A = struArray{fileiter}.data;
@@ -17,17 +17,22 @@ for fileiter = [1:1:3 ]%length(struArray)]
     kb = 1.38*10^(-23);
     
     
+  
 
     
     [Rs0,Rsh0,Voc,Isc,Im,Vm,Voc_index,Isc_index] = lineofbestfit(V,-I);
 
-Rs0 = Voc/Isc *0.90;
-     beta0=[Rs0,Rsh0,500];
+ 
+    
+    
+    
+        %Rs0 = Voc/Isc *0.90;
+    beta0=[1*10^-6,3.005510172434505e+03,900];
      
 
      
-     b=lsqnonlin(@thisisfun,beta0,[],[],[],V(),I(),Voc,Isc,Vm,Im,kb,q,Rs0,Rsh0,Voc_index,Isc_index);
-     [min,Ical] = thisisfun(b,V(),I(),Voc,Isc,Vm,Im,kb,q,Rs0,Rsh0,Voc_index,Isc_index);
+     b=lsqnonlin(@thisisfun,beta0,[0,3.005510172434505e+03,100],[32,1.293616711954217e+18,1000],[],V(),I(),Voc,Isc,Vm,Im,kb,q,Rs0,Rsh0,Voc_index,Isc_index);
+    [min,Ical] = thisisfun(b,V(),I(),Voc,Isc,Vm,Im,kb,q,Rs0,Rsh0,Voc_index,Isc_index);
      
      %[min,Ical] = thisisfun(beta0,V(),I(),Voc,Isc,Vm,Im,kb,q,Rs0,Rsh0,Voc_index,Isc_index);
 
@@ -58,10 +63,10 @@ cd(top);
 
 function [min,Ireg] = thisisfun(beta0,V,I,Voc,Isc,Vm,Im,kb,q,Rs,Rsh,Voc_index,Isc_index)
 
-N = beta0(3);
+
 Rs = beta0(1);
 Rsh = beta0(2);
-
+N = beta0(3);
 
 %I broke the terms in the long lambert equation to make it easy to read and
 %follow
