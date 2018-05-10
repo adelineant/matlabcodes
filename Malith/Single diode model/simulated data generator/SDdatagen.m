@@ -1,25 +1,45 @@
-%clc,clear all, close all
+clc,clear all, close all
 format long
-for Rs = [245.982886107869];
-    for Rsh = [2850.24830959519]
-        for N = [60.6034974503790]%linspace(100,10000,10)
+for Rs = [0.0396]
+    for Rsh = [36]
+        for N = [300*1.25]%linspace(100,10000,10)
             
             
             
-            Voc = 0.9694;
-            Isc = 0.0037;
-            V = linspace(0,Voc*2.0,1000);
+            Voc = 0.5728;
+            Isc = 0.7608;
+            V = linspace(0,Voc,1000);
             %figure ;
         
             %T = 306.15;
 
             %y=SD_equation(V,I,Rs,Rsh,n)
            [Ireg,Vm,Im,dvdI,dvdI2,dvdI3] = SD_equation(V,Voc,Isc,Rs,Rsh,N);
+           
+           plot(V,Ireg)
             
             %plot (V,-Ical)
            % hold on
            
-           
+              Vcal = (Ireg - Isc - (Isc/Voc).*V)./((-2/Voc)*(Isc/Voc));
+   
+  
+               Ical = (-Isc/Voc).*Vcal + Isc;
+
+              % logic = (Vcal > 0 & Vcal < Voc);
+
+               %Vcal = Vcal(logic);
+              % Ical = Ical(logic);
+
+               d = ((V -Vcal).^2 - (-Ireg + Ical).^2).^0.5;
+
+              %Ical = (Isc/Voc).*V + Isc*(1-((2/Voc).*V));
+
+              %limit V and I to get the solution you want
+                q = 1.6012*10^(-19); 
+                kb = 1.38*10^(-23);
+
+              maxpoint = find (d == max(d((Vcal > 0 & Vcal < Voc))));
    
             
             
@@ -30,10 +50,11 @@ for Rs = [245.982886107869];
            %rad = (abs(((dvdI2))./((1 + dvdI.^2).^(3/2))));
            %rad =  ((1 + dvdI.^2).^(3/2))./(abs(dvdI2));
            %not abs here. just to test the equation
-           rad = ((((dvdI2))./((1 + dvdI.^2).^(3/2))));
+          % rad = ((((dvdI2))./((1 + dvdI.^2).^(3/2))));
            %plot(Ireg,rad);
            hold on
             %figure;
+             plot(V(maxpoint), Ireg(maxpoint),'*')
             plot(V,Ireg);
             hold on
             plot(Vm,Im,'o');
@@ -42,15 +63,15 @@ for Rs = [245.982886107869];
             
             ylabel('I');
             
-            fmt = sprintf("Rs=%d Rsh=%d N=%d",Rs,Rsh,N);
+            %fmt = sprintf("Rs=%d Rsh=%d N=%d",Rs,Rsh,N);
             
-            legend(fmt,'powerpoint')
+            %legend(fmt,'powerpoint')
             
             ylim([0 Inf])
           
-            bb = (min(rad) == rad);
+           % bb = (min(rad) == rad);
             
-            plot(V(bb),Ireg(bb),'*')
+            %plot(V(bb),Ireg(bb),'*')
                             
             
             Isc_index = find(abs(V)==min(abs(V-0)));
@@ -59,17 +80,16 @@ for Rs = [245.982886107869];
            %fprintf(fileID,'%6s %12s\r\n','V','Ical');
             
             A = [V;Ireg];
-            figure
-            plot(A(1,:),A(2,:))
-            fileID = fopen("lowshunt.txt",'w');
-            fprintf(fileID,'%12f %12f\r\n',A);
-            fclose(fileID);
+           % figure
+            %plot(A(1,:),A(2,:))
+         %  fileID = fopen("testsame.txt",'w');
+           % fprintf(fileID,'%12f %12f\r\n',A);
+           % fclose(fileID);
             
            % fun = @(x) (1 + 1/(Ireg(bb)^2) + 2/(-Ireg(bb)^3))/(x^2*((1+1/(Ireg(bb)^2))^2))  -  3*((1+(x/Ireg(bb))^2)^(-0.5))
             
            %fzero(fun,0.6)
        
-           
             %format = sprintf("Rs=%e_Rsh=%e_n=%f.txt",Rs,Rsh,N);
             
 
@@ -77,7 +97,7 @@ for Rs = [245.982886107869];
             %fprintf(fileID,'%6s %12s\r\n','V','Ical');
             %fprintf(fileID,'%6.2f %12.8f\r\n',A);
             %fclose(fileID);
-            Ireg(bb);
+            %Ireg(bb);
         end
     end
 end
