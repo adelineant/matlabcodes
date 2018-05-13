@@ -9,7 +9,9 @@ if ( (isreal(V) || isreal(I)) == false)
 end
 %Find the Isc and Voc in the data that has been given
 
-    Isc_index = find(abs(V)==min(abs(V-0)));
+    Isc_ind = find(abs(V)==min(abs(V-0)));
+    
+    Isc_index = Isc_ind(1);
     
     Isc= I(Isc_index);
     
@@ -17,10 +19,12 @@ end
         %if Isc is less than 0 multiple all the currents by zero
         disp('The current values supplied have been multiplied by -1');
         I = -I;
-        
+        Isc = -Isc;
     end
 
-    Voc_index = find(abs(I)==min(abs(I-0)));
+    Voc_ind = find(abs(I)==min(abs(I-0)));
+    %incase two or more values exist
+    Voc_index = Voc_ind(1);
     
     Voc= V(Voc_index);
     %smooth the data
@@ -33,8 +37,8 @@ end
 %bestfit model
 
     
-    Rsh0 = Rshfit(V,I,Vm,Im,Isc);
-    Rs0 = Rsfit(V,I,Im,Rsh0,Isc);
+    Rsh0 = Rshfit(V,I,Vm,Isc);
+    Rs0 = Rsfit(V,I,Im);
     
     %return absolute ISC
     
@@ -43,10 +47,11 @@ end
 end
 
 
-function grad = Rsfit(V,I,Im,Rsh0,Isc)
+function grad = Rsfit(V,I,Im)
 
-
-        zlogic = (I > Im/2);
+        %you need to take points near Voc for this to make sense
+        %
+        zlogic = (I > Im/2 & I < abs(Im/2));
         
 
 
@@ -64,23 +69,18 @@ function grad = Rsfit(V,I,Im,Rsh0,Isc)
         %dVdI
     
         grad = gradient(0);
-        
 
     
 
 end
 
-function grad = Rshfit(V,I,Vm,Im,Isc)
+function grad = Rshfit(V,I,Vm,Isc)
 
-
-
-        %For Rsh0 data from Vm/2 is expected to be straight.
-        %Not a bad assumption
-        zlogic = (V < Vm/2);
-        %mgrad is not used right now but will be implemented later
-        mgrad = (Im - Isc)/(Vm - 0);
-        %for Rsh0 straight line is ok. hence n = 1
-        n = 1;
+%take 80% of the data to Vm
+        zlogic = (V < Vm*0.8);
+       
+        %assume second order polynomials
+        n = 2;
         
         Vdatapoint = V(zlogic);
         
@@ -88,8 +88,9 @@ function grad = Rshfit(V,I,Vm,Im,Isc)
         
         [Vpara]= polyfit(Idatapoint,Vdatapoint,n);
         
-        %dV/dI = -Vpara(1)
-        grad = Vpara(1);
+        gradient = @(x) (2*Vpara(1)*x + Vpara(2));
+        
+        grad = gradient(Isc);
         
     
 
