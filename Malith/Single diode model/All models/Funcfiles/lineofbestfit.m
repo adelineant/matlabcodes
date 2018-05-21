@@ -1,7 +1,8 @@
-function [Rs0,Rsh0,Voc,Isc,Im,Vm,Voc_index,Isc_index,I_smooth,I_orignal_data] = lineofbestfit(V,I)
+function [Rs0,Rsh0,Voc,Isc,Im,Vm,Voc_index,Isc_index,I_smooth,I_orignal_data,MPOC] = lineofbestfit(V,I)
 
 %test if the user has inputted the is correct
 %check if the inputs are all real and contains no imaginary values
+
 
 
 if ( (isreal(V) || isreal(I)) == false) 
@@ -12,8 +13,11 @@ end
 %Find the Isc and Voc in the data that has been given
 
     I_orignal_data = I;
+    
+   % plot(V,-I_orignal_data,'LineWidth',1.5)
+    %hold on
        
-    I_smooth = smoothdata(I_orignal_data,1,'rlowess',5);
+    I_smooth = smoothdata(I_orignal_data,1,'rlowess',10);
 
     Isc_ind = find(abs(V)==min(abs(V-0)));
     
@@ -39,20 +43,31 @@ end
     %smooth the data
     %Ismooth = smoothdata(I,'sgolay');
         
-   [Vm,Im] =  mxpower(Voc_index,Isc_index,I_smooth,V);
+   [Vm,Im,MPOC] =  mxpower(Voc_index,Isc_index,I_smooth,V);
 
 
 %Here we call the the local function Rsfit that is a local function in the
 %bestfit model
 
     
-    Rsh0 = Rshfit(V,I_smooth,Vm,Im,Isc);
+    Rsh0 = Rshfit(V,I_smooth,Vm,Im,Isc,Voc);
     Rs0 = Rsfit(V,I_smooth,Im,Voc);
     
     %return absolute ISC
     
     Isc = abs(Isc);
-
+    
+   %{
+    plot(Vm,-Im,'ko','MarkerFaceColor','black');
+    ylim([0 Isc*1.2])
+    xlim([0 Voc*1.1])
+    legend('Simulated data case 6','2nd order polynomial 1','2nd order polynomial 2','MPP','location','southwest') 
+    grid on
+    grid minor
+    title('Two 2nd order polynomials drawn on top of the case 6 simulated data');
+      xlabel('Voltage (V)')
+     ylabel('Current (A)')
+     %}
 end
 
 
@@ -60,7 +75,7 @@ function grad = Rsfit(V,I,Im,Voc)
 
         %you need to take points near Voc for this to make sense
         %
-        zlogic = (I > Im/2 & V <= Voc);
+        zlogic = (I >= Im/2 & V <= Voc);
         
 
 
@@ -78,15 +93,14 @@ function grad = Rsfit(V,I,Im,Voc)
         %dVdI
     
         grad = gradient(0);
-
+        %plot(polyval(Vpara,Idatapoint),-Idatapoint,'LineWidth',1.5)
     
 
 end
 
-function grad = Rshfit(V,I,Vm,Im,Isc)
+function grad = Rshfit(V,I,Vm,Im,Isc,Voc)
 
-%take 80% of the data to Vm
-        zlogic = (V < Vm*0.8);
+zlogic = (V > 0 & V < Vm*0.8);
        
         %assume second order polynomials
         n = 2;
@@ -97,23 +111,30 @@ function grad = Rshfit(V,I,Vm,Im,Isc)
         
         [Vpara]= polyfit(Idatapoint,Vdatapoint,n);
         
-        %gradient = @(x) ;
+        
+        %gradient = @(x) Vpara(1);
         gradient = @(x) (2*Vpara(1)*x + Vpara(2));
         
         grad = gradient(Isc);
+       
+
         %line of code to test 
        if (grad < 0 || (abs(Im) > abs(Isc)))
            
+           Im_temp = Im;
             if abs(Im) > abs(Isc)
                 
                 Im_temp = Isc*0.98;
                 
             end
+             
            
             grad = abs(Vm/(Isc - Im_temp))*1.2;
             
-        end    
-    
+       end    
+       % plot(polyval(Vpara,Idatapoint),-Idatapoint,'LineWidth',1.5)
+
+       
 
 end 
 

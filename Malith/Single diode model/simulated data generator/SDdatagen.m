@@ -11,9 +11,9 @@ q = 1.6012*10^(-19);
 kb = 1.38*10^(-23);
 
 
-for Rs = [30]%{ 0.1*(Voc/Isc),0.4*(Voc/Isc),0.91*(Voc/Isc)]
-    for Rsh = [100]
-        for n = [3]%linspace(100,10000,10)
+for Rs = [0.1]%{ 0.1*(Voc/Isc),0.4*(Voc/Isc),0.91*(Voc/Isc)]
+    for Rsh = [200]
+        for n = [2.5]%linspace(100,10000,10)
             
             I0 = (Isc - Voc/Rsh)*exp(-q*Voc/(n*T*kb))/(1 - exp(-q*Voc/(n*T*kb)));
 
@@ -24,7 +24,7 @@ for Rs = [30]%{ 0.1*(Voc/Isc),0.4*(Voc/Isc),0.91*(Voc/Isc)]
             
            [Ireg] = SD_equation(V,Voc,Isc,Rs,Rsh,n,T);
            
-            
+         
 
            
             
