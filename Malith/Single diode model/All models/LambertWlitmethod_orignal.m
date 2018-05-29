@@ -59,8 +59,7 @@ for fileiter = [1:1:length(struArray) ]%length(struArray)]
     beta0 = [Rs0,GradRsh0,n];
     
      options = optimset('Display','none',...
-    'TolX',1e-10,...
-    'TolFun',1e-10,... 
+    'TolFun',1e-10,...
     'Algorithm','trust-region-reflective');
     
     if Voc_index > Isc_index
@@ -76,12 +75,12 @@ for fileiter = [1:1:length(struArray) ]%length(struArray)]
     
     nmax = (GradRs0*Isc)/(Vt);
     
-    if nmax < 7
+    if nmax < 5
         
     nmax = ceil(nmax) + 0.1;
      
     else 
-        nmax  = 7;
+        nmax  = 5;
     end
         
     Rsh_22 = (((Vt)/(-Vm/Im) - (Isc + Im))/(-Vm + Vt))^-1;
@@ -89,27 +88,28 @@ for fileiter = [1:1:length(struArray) ]%length(struArray)]
     lowb = [1e-4,Rsh_22,1];
     upb = [GradRs0*1.3,Inf,nmax];
     b=lsqnonlin(@errorfuntion,real(beta0),lowb,upb,options,V(span),I_smooth(span),Voc,Isc);
-    I_fit = fitter(b,V,Voc,Isc);
+    [I_fit] = fitter(b,V,Voc,Isc);
     [GradRs0_fit,GradRsh0_fit,Voc_fit,Isc_fit,Im_fit,Vm_fit,Voc_index_fit,Isc_index_fit,I_smooth_fit,I_orignal_data_fit] = lineofbestfit(V,I_fit);
     
     
     %VERY IMPORTANT ALL THE I VALUES MUST BE NEGATIVE AT ISC FOR THIS TO
     %WORK
-    poloo = subplot(2,2,fileiter);
+    figure;
+    % poloo = subplot(2,2,fileiter);
      fillfactor = sprintf('Fill Factor = %0.1f%%',ffactor);
      %subplot(15,2,fileiter);
  
-     name = sprintf('Case %d',fileiter);
+     name = sprintf('Data %d',fileiter);
      title(name);
      hold on
      plot(V,-I_orignal_data,'r-','LineWidth',1);
-     %plot(V,-I_fit,'b-','LineWidth',1);
-     %plot(Vm_fit,-Im_fit,'bo','MarkerFaceColor','blue')   
+     plot(V,-I_fit,'b-','LineWidth',1);
+    % plot(Vm_fit,-Im_fit,'bo','MarkerFaceColor','blue')   
      plot(Vm,-Im,'ko','MarkerFaceColor','black');
      
     
   %  text(0.10*Voc,Isc/2,fillfactor);
-     %plot(Vm_fit,-Im_fit,'go')
+     %plot(Vm_fit,-Im_fit,'go','MarkerFaceColor','blue')
      
      grid on 
      grid minor
@@ -127,7 +127,9 @@ for fileiter = [1:1:length(struArray) ]%length(struArray)]
 
      
      if fileiter == 1
-         legend('Simulated data with SR = 45','MPP','location','southwest') 
+         
+         legend('Experimental Data','Fitted Curve','MPP','location','southwest') 
+         %legend('Simulated data with SR = 45','Fitted Curve','MPP','location','southwest') 
          
         %legend('Experimental Curve','Fitted Curve','Fitted MPP','Experimental MPP','location','northeast') 
          
@@ -143,8 +145,7 @@ for i = 1:1:fileiter
    Rsh = struArray{i}.extract(2)
    n = struArray{i}.extract(3)
    RMSE = struArray{i}.extract(4)
-
-    
+  
 end
 
 cd(top);
@@ -173,7 +174,7 @@ min = Ireg - I;
 end 
 
 
-function Ireg = fitter(beta0,V,Voc,Isc)
+function [Ireg] = fitter(beta0,V,Voc,Isc)
 
 
 Rs = beta0(1);
@@ -192,6 +193,10 @@ Ireg = V/Rs - Rsh*(((Rs*(Isc + ((Rs*Isc - Voc)/Rsh)))/(1-exp(q*(Rs*Isc - Voc)/(k
     /(1-exp(q*(Rs*Isc - Voc)/(kb*N)))+(Rs*Voc)/Rsh + V))/(N*kb*(Rs+Rsh))));
 
 end
+
+
+
+
 
 function [struArray,top] = datagrab()
 %top is the current directory

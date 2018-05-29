@@ -14,11 +14,19 @@ end
 
     I_orignal_data = I;
     
-   % plot(V,-I_orignal_data,'LineWidth',1.5)
-    %hold on
-       
-    I_smooth = smoothdata(I_orignal_data,1,'rlowess',10);
 
+    
+    dattole = ceil((length(I_orignal_data)*0.1));   
+    if dattole < 20
+    
+
+    I_smooth = I_orignal_data;
+    
+    else 
+        
+    I_smooth = smoothdata(I_orignal_data,1,'rlowess',10);
+    
+    end
     Isc_ind = find(abs(V)==min(abs(V-0)));
     
     Isc_index = Isc_ind(1);
@@ -33,9 +41,10 @@ end
         I_smooth = -I_smooth;
         Isc = -Isc;
     end
-    
+    %plot(V,-I_orignal_data,'LineWidth',1.5)
+    %hold on
 
-    Voc_ind = find(abs(I_smooth)==min(abs(I_smooth-0)));
+    Voc_ind = find(abs(I_smooth) == min(abs(I_smooth-0)));
     %incase two or more values exist
     Voc_index = Voc_ind(1);
     
@@ -56,6 +65,7 @@ end
     %return absolute ISC
     
     Isc = abs(Isc);
+   
     
    %{
     plot(Vm,-Im,'ko','MarkerFaceColor','black');
@@ -75,7 +85,7 @@ function grad = Rsfit(V,I,Im,Voc)
 
         %you need to take points near Voc for this to make sense
         %
-        zlogic = (I >= Im/2 & V <= Voc);
+        zlogic = (I >= Im/2 & I <= 0);
         
 
 
@@ -93,7 +103,7 @@ function grad = Rsfit(V,I,Im,Voc)
         %dVdI
     
         grad = gradient(0);
-        %plot(polyval(Vpara,Idatapoint),-Idatapoint,'LineWidth',1.5)
+       %plot(polyval(Vpara,Idatapoint),-Idatapoint,'LineWidth',1.5)
     
 
 end
